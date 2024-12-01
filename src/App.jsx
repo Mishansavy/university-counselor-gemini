@@ -1,11 +1,25 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
 //gemini sdk import
 import { GoogleGenerativeAI } from "@google/generative-ai";
 // components import
-import ChatHistory from "./components/ChatHistory";
 import Loading from "./components/Loading";
+
+// Mui import
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Container,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+} from "@mui/material";
+
 function App() {
-  const [useInput, setUserInput] = useState("");
+  const [userInput, setUserInput] = useState("");
   const [chathistory, setChathistory] = useState([]);
   const [isloading, setIsLoading] = useState(false);
 
@@ -20,14 +34,14 @@ function App() {
 
   // send user message to gemini
   const sendMessage = async () => {
-    if (useInput.trim() === "") return;
+    if (userInput.trim() === "") return;
 
     setIsLoading(true);
 
     try {
       // gemini api call
       const result = await model.generateContent(userInput);
-      const response = await result.response;
+      const response = result.response;
 
       // response to the chat history
       setChathistory([
@@ -35,7 +49,7 @@ function App() {
         { type: "user", message: userInput },
         { type: "bot", message: response.text() },
       ]);
-    } catch {
+    } catch (error) {
       console.error("Error sending message");
     } finally {
       setUserInput("");
@@ -50,28 +64,52 @@ function App() {
 
   return (
     <>
-      <div>
-        <h1>Univeristy Counselor</h1>
-
-        <div>
-          <ChatHistory chathistory={chathistory} />
-          <Loading isloading={isloading} />
-        </div>
-
-        <div>
-          <input
-            type="text"
-            placeholder="Ask your query"
-            value={useInput}
+      <Container maxWidth="sm">
+        <Box sx={{ my: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            University Counselor
+          </Typography>
+          <List>
+            {chathistory.map((message, index) => (
+              <React.Fragment key={index}>
+                <ListItem>
+                  <ListItemText
+                    primary={
+                      message.type === "user" ? (
+                        <Typography variant="body1">
+                          <strong>You:</strong> {message.message}
+                        </Typography>
+                      ) : (
+                        <ReactMarkdown>{message.message}</ReactMarkdown>
+                      )
+                    }
+                  />
+                </ListItem>
+                <Divider />
+              </React.Fragment>
+            ))}
+          </List>
+          {isloading && <Loading />}
+          <TextField
+            label="Ask your query"
+            variant="outlined"
+            fullWidth
+            value={userInput}
             onChange={handleUserInput}
+            sx={{ my: 2 }}
           />
-          <button onClick={sendMessage} disabled={isloading}>
+          <Button
+            variant="contained"
+            onClick={sendMessage}
+            disabled={isloading}
+          >
             Send
-          </button>
-        </div>
-
-        <button onClick={clearChat}>Clear Chat</button>
-      </div>
+          </Button>
+          <Button variant="outlined" onClick={clearChat} sx={{ ml: 2 }}>
+            Clear Chat
+          </Button>
+        </Box>
+      </Container>
     </>
   );
 }
