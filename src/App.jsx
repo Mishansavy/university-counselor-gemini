@@ -30,6 +30,9 @@ function App() {
   // handle user input
   const handleUserInput = (e) => {
     setUserInput(e.target.value);
+    if (e.key === "Enter") {
+      sendMessage();
+    }
   };
 
   // send user message to gemini
@@ -38,9 +41,20 @@ function App() {
 
     setIsLoading(true);
 
+    const updateInput = `You are an expert University Mentor specializing in guiding students for studying abroad in the USA, Australia, and Canada.
+  Provide comprehensive advice on:
+  - University selection based on academic and financial profiles.
+  - Scholarship and financial aid opportunities.
+  - Application processes (personal statements, letters of recommendation, etc.).
+  - Visa processes and requirements.
+  - Tips for adapting to new cultures and lifestyles.
+  Respond concisely, politely, and in a professional tone. 
+
+  User query: ${userInput}`;
+
     try {
       // gemini api call
-      const result = await model.generateContent(userInput);
+      const result = await model.generateContent(updateInput);
       const response = result.response;
 
       // response to the chat history
@@ -59,7 +73,7 @@ function App() {
 
   // clear chat history
   const clearChat = () => {
-    setchathistory([]);
+    setChathistory([]);
   };
 
   return (
@@ -68,6 +82,9 @@ function App() {
         <Box sx={{ my: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom>
             University Counselor
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            I will help you find the best university for studying abroad.
           </Typography>
           <List>
             {chathistory.map((message, index) => (
