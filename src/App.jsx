@@ -156,7 +156,7 @@
 
 // export default App;
 
-// test ui
+// Refactored and more organized ui
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import Loading from "./components/Loading";
