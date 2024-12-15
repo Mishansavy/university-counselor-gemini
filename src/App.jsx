@@ -22,6 +22,7 @@ function App() {
   const [userInput, setUserInput] = useState("");
   const [chathistory, setChathistory] = useState([]);
   const [isloading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // initialize gemini
   const getAI = new GoogleGenerativeAI(import.meta.env.VITE_MODEL_AI);
@@ -40,6 +41,19 @@ function App() {
     if (userInput.trim() === "") return;
 
     setIsLoading(true);
+    setErrorMessage("");
+
+    //Build Chat History Context
+    //Limit chat history to last 10 messages
+    const MAX_HISTORY = 10;
+    const historyContext = chathistory
+      .slice(-MAX_HISTORY)
+      .map((message) =>
+        message.type === "user"
+          ? `User: ${message.message}`
+          : `Bot: ${message.message}`
+      )
+      .join("\n");
 
     const updateInput = `You are an expert University Mentor specializing in guiding students for studying abroad in the USA, Australia, and Canada.
   Provide comprehensive advice on:
@@ -50,6 +64,9 @@ function App() {
   - Tips for adapting to new cultures and lifestyles.
   Respond concisely, politely, and in a professional tone. 
 
+  Previous conversation for context:
+  ${historyContext}
+
   User query: ${userInput}`;
 
     try {
@@ -57,7 +74,7 @@ function App() {
       const result = await model.generateContent(updateInput);
       const response = result.response;
 
-      // response to the chat history
+      // Update chat history
       setChathistory([
         ...chathistory,
         { type: "user", message: userInput },
@@ -65,6 +82,7 @@ function App() {
       ]);
     } catch (error) {
       console.error("Error sending message");
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
       setUserInput("");
       setIsLoading(false);
@@ -86,6 +104,11 @@ function App() {
           <Typography variant="body2" gutterBottom>
             I will help you find the best university for studying abroad.
           </Typography>
+          {errorMessage && (
+            <Typography variant="body2" color="error" gutterBottom>
+              {errorMessage}
+            </Typography>
+          )}
           <List>
             {chathistory.map((message, index) => (
               <React.Fragment key={index}>
